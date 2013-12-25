@@ -1,3 +1,34 @@
+// Copyright 2013 Vasiliy Gorin. All rights reserved.
+// Use of this source code is governed by a GNU-style
+// license that can be found in the LICENSE file.
+
+/*
+Package cryptogo implements some useful cryptography-related functions:
+	1. Hash-related:
+		1.1. MD5Bytes
+				calculates an MD5 chechsum of the input byte array as a byte array
+		1.2. MD5Base64
+				calculates an MD5 chechsum of the input byte array as a base64-encoded string
+		1.3. MD5Hex
+				calculates an MD5 chechsum of the input byte array as a hex-encoded string
+
+	2. AES-related:
+		2.1. PasswordAesEncrypt
+				encrypts input byte array using string password specified into a new (encrypted) byte array
+		2.2. PasswordAesDecrypt
+				decrypts input byte array using string password specified into a new (decrypted) byte array
+
+	3. Padding-related
+		3.1. Pkcs5Pad
+				adds PKCS #5 padding to an input byte array, returning new (padded) byte array
+		3.2. Pkcs5Unpad
+				removes PKCS #5 padding from an input byte array, returning new (striped) byte array
+
+	4. Random-related
+		4.1. RandomBytes
+				generates a random byte array of the specified length
+*/
+
 package cryptogo
 
 import "crypto/rand"
@@ -6,6 +37,10 @@ import "crypto/aes"
 import "crypto/cipher"
 import "bytes"
 import "fmt"
+
+import "encoding/base64"
+import "encoding/hex"
+import "crypto/md5"
 
 import "code.google.com/p/go.crypto/pbkdf2"
 
@@ -125,4 +160,20 @@ func aes_dec(encrypted []byte, password string, saltlen, ivlen, keylen byte) (or
 	}
 
 	return Pkcs5Unpad(block)
+}
+
+// MD5Bytes calculates MD5 sum of the input array, returning result as a byte array
+func MD5Bytes(buf []byte) []byte {
+	m16 := md5.Sum(buf)
+	return m16[:]
+}
+
+// MD5Base64 calculates MD5 sum of the input array, returning result as a base64-encoded string
+func MD5Base64(buf []byte) string {
+	return base64.StdEncoding.EncodeToString(MD5Bytes(buf))
+}
+
+// MD5Hex calculates MD5 sum of the input array, returning result as a hex-encoded string
+func MD5Hex(buf []byte) string {
+	return hex.EncodeToString(MD5Bytes(buf))
 }
