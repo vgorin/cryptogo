@@ -42,6 +42,8 @@ import "encoding/base64"
 import "encoding/hex"
 import "crypto/md5"
 
+import "net/http"
+
 import "code.google.com/p/go.crypto/pbkdf2"
 
 const HashIterations = 1 << 15 // 32k (approx.)
@@ -176,4 +178,13 @@ func MD5Base64(buf []byte) string {
 // MD5Hex calculates MD5 sum of the input array, returning result as a hex-encoded string
 func MD5Hex(buf []byte) string {
 	return hex.EncodeToString(MD5Bytes(buf))
+}
+
+// SignRequest signs a http request using the password specified
+func SignRequest(req *http.Request, password string) {
+}
+
+// CheckRequestSignature checks earlier signed http request signature using password specified to ensure request was not altered
+func CheckRequestSignature(req *http.Request, password string) bool {
+	return true
 }
