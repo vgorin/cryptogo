@@ -36,13 +36,15 @@ import "crypto/sha1"
 import "crypto/aes"
 import "crypto/cipher"
 import "bytes"
-import "fmt"
 
 import "encoding/base64"
 import "encoding/hex"
 import "crypto/md5"
 
+import "crypto/hmac"
+import "crypto/sha256"
 import "net/http"
+import "sort"
 
 import "code.google.com/p/go.crypto/pbkdf2"
 
@@ -50,6 +52,9 @@ const HashIterations = 1 << 15 // 32k (approx.)
 const SaltLength = 1 << 4      // 128 bit
 const IVLength = 1 << 4        // 128 bit
 const KeyLength = 1 << 5       // 32 bytes (256-bit)
+
+const REQ_HEADER_SALT = "x-cryptogo-salt"
+const REQ_HEADER_SIGNATURE = "x-cryptogo-signature"
 
 func key(password string, salt []byte, keylen byte) (key []byte) {
 	key = pbkdf2.Key([]byte(password), salt, HashIterations, int(keylen), sha1.New)
@@ -127,19 +132,19 @@ func aes_enc(original []byte, password string, saltlen, ivlen, keylen byte) (enc
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("salt len:\t%v\n", len(salt))
+	//	fmt.Printf("salt len:\t%v\n", len(salt))
 
 	iv, err := iv(ivlen)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("iv len:\t%v\n", len(iv))
+	//	fmt.Printf("iv len:\t%v\n", len(iv))
 
 	key := key(password, salt, keylen)
-	fmt.Printf("key len:\t%v\n", len(key))
+	//	fmt.Printf("key len:\t%v\n", len(key))
 
 	block := Pkcs5Pad(original, keylen)
-	fmt.Printf("block len:\t%v\n", len(block))
+	//	fmt.Printf("block len:\t%v\n", len(block))
 
 	err = aes_enc_block(block, iv, key)
 	if err != nil {
@@ -180,11 +185,106 @@ func MD5Hex(buf []byte) string {
 	return hex.EncodeToString(MD5Bytes(buf))
 }
 
-// SignRequest signs a http request using the password specified
-func SignRequest(req *http.Request, password string) {
+// PasswordSignRequest signs a http request using the password specified
+// Signature changes if:
+// 	remote address changes
+// 	request URI changes
+// 	request header is deleted
+// 	request header is added
+// 	request header is modified
+//
+// Signature doesn't change if:
+// 	request header ordering is changed
+func PasswordSignRequest(req *http.Request, password string) error {
+	return sign_request(req, password, SaltLength, KeyLength)
 }
 
-// CheckRequestSignature checks earlier signed http request signature using password specified to ensure request was not altered
-func CheckRequestSignature(req *http.Request, password string) bool {
-	return true
+// PasswordVerifyRequest checks earlier signed http request signature using password specified to ensure request was not altered
+func PasswordVerifyRequest(req *http.Request, password string) bool {
+	return check_request_signature(req, password, KeyLength)
+}
+
+func sign_request(req *http.Request, password string, saltlen, keylen byte) error {
+	salt, err := salt(saltlen)
+	if err != nil {
+		return err
+	}
+
+	salt_hex := hex.EncodeToString(salt)
+	req.Header.Set(REQ_HEADER_SALT, salt_hex)
+
+	key := key(password, salt, keylen)
+	message := marshal_request(req)
+	hmac256 := hmac_sha256(message, key)
+
+	signature_hex := hex.EncodeToString(hmac256)
+	req.Header.Set(REQ_HEADER_SIGNATURE, signature_hex)
+
+	return nil
+}
+
+func check_request_signature(req *http.Request, password string, keylen byte) bool {
+	salt_hex := req.Header.Get(REQ_HEADER_SALT)
+	if salt_hex == "" {
+		return false
+	}
+	salt, err := hex.DecodeString(salt_hex)
+	if err != nil {
+		return false
+	}
+
+	signature_hex := req.Header.Get(REQ_HEADER_SIGNATURE)
+	if signature_hex == "" {
+		return false
+	}
+
+	// temporary remove signature header
+	req.Header.Del(REQ_HEADER_SIGNATURE)
+	defer req.Header.Set(REQ_HEADER_SIGNATURE, signature_hex)
+
+	signature, err := hex.DecodeString(signature_hex)
+	if err != nil {
+		return false
+	}
+
+	key := key(password, salt, keylen)
+	message := marshal_request(req)
+	hmac256 := hmac_sha256(message, key)
+
+	return bytes.Compare(signature, hmac256) == 0
+}
+
+func hmac_sha256(message, key []byte) []byte {
+	mac := hmac.New(sha256.New, key)
+	mac.Write(message)
+
+	return mac.Sum(nil)
+}
+
+func marshal_request(req *http.Request) []byte {
+	buffer := new(bytes.Buffer)
+	buffer.WriteString(req.RemoteAddr)
+	buffer.WriteString(req.RequestURI)
+
+	header := req.Header
+
+	// sort headers
+	keys := make([]string, len(header))
+	i := 0
+	for k, _ := range header {
+		keys[i] = k
+		i++
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		values := header[key]
+		buffer.WriteString(key) // and write them to the buffer
+		//sort header values
+		sort.Strings(values)
+		for _, value := range values {
+			buffer.WriteString(value) // and write them to the buffer as well
+		}
+	}
+
+	return buffer.Bytes()
 }
