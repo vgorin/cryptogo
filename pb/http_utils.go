@@ -13,6 +13,25 @@ import "sort"
 
 import "github.com/vgorin/cryptogo/rnd"
 
+type signature_pattern struct {
+	// IncludesHeaders has higher priority then ExcludesHeaders
+	include_headers,
+	exclude_headers []string
+}
+
+// NewSignaturePattern creates new signature_pattern structure
+// Use NewSignaturePattern(nil, nil) to create an empty pattern which affects nothing
+func NewSignaturePattern(include_headers, exclude_headers []string) signature_pattern {
+	pattern := signature_pattern{include_headers, exclude_headers}
+	if len(pattern.include_headers) > 0 {
+		sort.Strings(pattern.include_headers)
+	}
+	if len(pattern.exclude_headers) > 0 {
+		sort.Strings(pattern.exclude_headers)
+	}
+	return pattern
+}
+
 // PBSignRequest signs a http request using the password specified
 // Signature changes if:
 // 	remote address changes
@@ -23,16 +42,16 @@ import "github.com/vgorin/cryptogo/rnd"
 //
 // Signature doesn't change if:
 // 	request header ordering is changed
-func PBSignRequest(req *http.Request, password string) error {
-	return pb_sign_request(req, password, PBKDF2_SALT_LENGTH, HMAC_KEY_LENGTH)
+func PBSignRequest(req *http.Request, password string, pattern signature_pattern) error {
+	return pb_sign_request(req, password, pattern, PBKDF2_SALT_LENGTH, HMAC_KEY_LENGTH)
 }
 
 // PBVerifyRequest checks earlier signed http request signature using password specified to ensure request was not altered
-func PBVerifyRequest(req *http.Request, password string) bool {
-	return pb_validate_request(req, password, HMAC_KEY_LENGTH)
+func PBVerifyRequest(req *http.Request, password string, pattern signature_pattern) bool {
+	return pb_validate_request(req, password, pattern, HMAC_KEY_LENGTH)
 }
 
-func pb_sign_request(req *http.Request, password string, saltlen, keylen byte) error {
+func pb_sign_request(req *http.Request, password string, pattern signature_pattern, saltlen, keylen byte) error {
 	salt, err := rnd.Salt(saltlen)
 	if err != nil {
 		return err
@@ -42,7 +61,7 @@ func pb_sign_request(req *http.Request, password string, saltlen, keylen byte) e
 	req.Header.Set(REQ_HEADER_SALT, salt_hex)
 
 	key := PBKDF2Key(password, salt, keylen)
-	message := marshal_request(req)
+	message := marshal_request(req, pattern)
 	hmac256 := hmac_sha256(message, key)
 
 	signature_hex := hex.EncodeToString(hmac256)
@@ -51,7 +70,7 @@ func pb_sign_request(req *http.Request, password string, saltlen, keylen byte) e
 	return nil
 }
 
-func pb_validate_request(req *http.Request, password string, keylen byte) bool {
+func pb_validate_request(req *http.Request, password string, pattern signature_pattern, keylen byte) bool {
 	salt_hex := req.Header.Get(REQ_HEADER_SALT)
 	if salt_hex == "" {
 		return false
@@ -76,7 +95,7 @@ func pb_validate_request(req *http.Request, password string, keylen byte) bool {
 	}
 
 	key := PBKDF2Key(password, salt, keylen)
-	message := marshal_request(req)
+	message := marshal_request(req, pattern)
 	hmac256 := hmac_sha256(message, key)
 
 	return bytes.Compare(signature, hmac256) == 0
@@ -89,7 +108,7 @@ func hmac_sha256(message, key []byte) []byte {
 	return mac.Sum(nil)
 }
 
-func marshal_request(req *http.Request) []byte {
+func marshal_request(req *http.Request, pattern signature_pattern) []byte {
 	buffer := new(bytes.Buffer)
 	buffer.WriteString(req.RemoteAddr)
 	buffer.WriteString(req.RequestURI)
@@ -97,11 +116,19 @@ func marshal_request(req *http.Request) []byte {
 	header := req.Header
 
 	// sort headers
-	keys := make([]string, len(header))
-	i := 0
-	for k, _ := range header {
-		keys[i] = k
-		i++
+	var keys []string
+	if len(pattern.include_headers) == 0 {
+		exc_len := len(pattern.exclude_headers)
+		keys := make([]string, len(header))
+		i := 0
+		for k, _ := range header {
+			if exc_len > 0 && sort.SearchStrings(pattern.exclude_headers, k) == exc_len {
+				keys[i] = k
+				i++
+			}
+		}
+	} else {
+		keys = pattern.include_headers
 	}
 	sort.Strings(keys)
 	for _, key := range keys {
