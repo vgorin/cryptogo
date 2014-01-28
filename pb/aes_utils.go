@@ -12,12 +12,12 @@ import "github.com/vgorin/cryptogo/pad"
 
 // PBAesEncode 256-bit AES-based password-based encryption
 func PBAesEncrypt(original []byte, password string) (encrypted []byte, err error) {
-	return pb_aes_enc(original, password, PBKDF2_SALT_LENGTH, AES_IV_LENGTH, AES_KEY_LENGTH)
+	return pb_aes_enc(original, password, PBKDF2_SALT_LENGTH, AES_KEY_LENGTH)
 }
 
 // PBAesDecrypt 256-bit AES-based password-based decryption
 func PBAesDecrypt(encrypted []byte, password string) (original []byte, err error) {
-	return pb_aes_dec(encrypted, password, PBKDF2_SALT_LENGTH, AES_IV_LENGTH, AES_KEY_LENGTH)
+	return pb_aes_dec(encrypted, password, PBKDF2_SALT_LENGTH, AES_KEY_LENGTH)
 }
 
 func aes_enc_block(block, iv, key []byte) error {
@@ -44,14 +44,14 @@ func aes_dec_block(block, iv, key []byte) error {
 	return nil
 }
 
-func pb_aes_enc(original []byte, password string, saltlen, ivlen, keylen byte) (encrypted []byte, err error) {
+func pb_aes_enc(original []byte, password string, saltlen, keylen byte) (encrypted []byte, err error) {
 	salt, err := rnd.Salt(saltlen)
 	if err != nil {
 		return nil, err
 	}
 	//	fmt.Printf("salt len:\t%v\n", len(salt))
 
-	iv, err := rnd.IV(ivlen)
+	iv, err := rnd.IV(AES_BLOCK_LENGTH)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func pb_aes_enc(original []byte, password string, saltlen, ivlen, keylen byte) (
 	key := PBKDF2Key(password, salt, keylen)
 	//	fmt.Printf("key len:\t%v\n", len(key))
 
-	block := pad.Pkcs5Pad(original, keylen)
+	block := pad.Pkcs5Pad(original, AES_BLOCK_LENGTH)
 	//	fmt.Printf("block len:\t%v\n", len(block))
 
 	err = aes_enc_block(block, iv, key)
@@ -71,12 +71,12 @@ func pb_aes_enc(original []byte, password string, saltlen, ivlen, keylen byte) (
 	return append(salt, append(iv, block...)...), nil
 }
 
-func pb_aes_dec(encrypted []byte, password string, saltlen, ivlen, keylen byte) (original []byte, err error) {
+func pb_aes_dec(encrypted []byte, password string, saltlen, keylen byte) (original []byte, err error) {
 	salt := encrypted[:saltlen]
-	iv := encrypted[saltlen : saltlen+ivlen]
+	iv := encrypted[saltlen : saltlen+AES_BLOCK_LENGTH]
 	key := PBKDF2Key(password, salt, keylen)
 
-	block := encrypted[saltlen+ivlen:]
+	block := encrypted[saltlen+AES_BLOCK_LENGTH:]
 
 	err = aes_dec_block(block, iv, key)
 	if err != nil {

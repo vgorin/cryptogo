@@ -4,7 +4,7 @@
 
 /*
 Package pb implements some useful password-based (PB) functions:
-	1. AES-related:
+	1. AES-related (192-bit AES):
 		1.1. PBAesEncrypt
 				encrypts input byte array using string password specified into a new (encrypted) byte array
 		1.2. PBAesDecrypt
@@ -25,8 +25,8 @@ import "code.google.com/p/go.crypto/pbkdf2"
 
 const PBKDF2_ITERATIONS = 1 << 15 // 32k (approx.)
 const PBKDF2_SALT_LENGTH = 1 << 4 // 128 bit
-const AES_IV_LENGTH = 1 << 4      // 128 bit
-const AES_KEY_LENGTH = 1 << 5     // 32 bytes (256-bit)
+const AES_BLOCK_LENGTH = 1 << 4   // 128 bit
+const AES_KEY_LENGTH = 24         // 24 bytes (192-bit)
 const HMAC_KEY_LENGTH = 1 << 5    // 32 bytes (256-bit)
 
 const REQ_HEADER_SALT = "x-cryptogo-salt"
