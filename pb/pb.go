@@ -29,9 +29,6 @@ const AES_BLOCK_LENGTH = 1 << 4   // 128 bit
 const AES_KEY_LENGTH = 24         // 24 bytes (192-bit)
 const HMAC_KEY_LENGTH = 1 << 5    // 32 bytes (256-bit)
 
-const REQ_HEADER_SALT = "x-cryptogo-salt"
-const REQ_HEADER_HMAC = "x-cryptogo-hmac"
-
 func PBKDF2Key(password string, salt []byte, keylen byte) (key []byte) {
 	key = pbkdf2.Key([]byte(password), salt, PBKDF2_ITERATIONS, int(keylen), sha1.New)
 	return key

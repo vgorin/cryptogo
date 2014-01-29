@@ -17,6 +17,7 @@ func GenerateKeyPair() (private_key_hex, public_key_hex string) {
 	if err != nil {
 		panic(err)
 	}
+
 	// marshal private key
 	private_key_bytes, err := x509.MarshalECPrivateKey(private_key)
 	if err != nil {

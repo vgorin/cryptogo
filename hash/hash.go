@@ -17,6 +17,7 @@ package hash
 import "encoding/base64"
 import "encoding/hex"
 import "crypto/md5"
+import "crypto/sha1"
 
 // MD5Bytes calculates MD5 sum of the input array, returning result as a byte array
 func MD5Bytes(buf []byte) []byte {
@@ -32,5 +33,21 @@ func MD5Base64(buf []byte) string {
 // MD5Hex calculates MD5 sum of the input array, returning result as a hex-encoded string
 func MD5Hex(buf []byte) string {
 	return hex.EncodeToString(MD5Bytes(buf))
+}
+
+// SHA1Bytes calculates SHA1 sum of the input array, returning result as a byte array
+func SHA1Bytes(buf []byte) []byte {
+	m20 := sha1.Sum(buf)
+	return m20[:]
+}
+
+// SHA1Base64 calculates SHA1 sum of the input array, returning result as a base64-encoded string
+func SHA1Base64(buf []byte) string {
+	return base64.StdEncoding.EncodeToString(SHA1Bytes(buf))
+}
+
+// SHA1Hex calculates SHA1 sum of the input array, returning result as a hex-encoded string
+func SHA1Hex(buf []byte) string {
+	return hex.EncodeToString(SHA1Bytes(buf))
 }
 
