@@ -1,3 +1,7 @@
+// Copyright 2013-2014 Vasiliy Gorin. All rights reserved.
+// Use of this source code is governed by a GNU-style
+// license that can be found in the LICENSE file.
+
 package asym
 
 import "testing"
@@ -42,5 +46,6 @@ func TestSignVerify(t *testing.T) {
 	if verify2 {
 		t.Fail()
 	}
+	t.Fail()
 }
 

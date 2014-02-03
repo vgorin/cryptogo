@@ -1,4 +1,4 @@
-// Copyright 2013 Vasiliy Gorin. All rights reserved.
+// Copyright 2013-2014 Vasiliy Gorin. All rights reserved.
 // Use of this source code is governed by a GNU-style
 // license that can be found in the LICENSE file.
 
@@ -60,7 +60,7 @@ func pb_aes_enc(original []byte, password string, saltlen, keylen byte) (encrypt
 	key := PBKDF2Key(password, salt, keylen)
 	//	fmt.Printf("key len:\t%v\n", len(key))
 
-	block := pad.Pkcs5Pad(original, AES_BLOCK_LENGTH)
+	block := pad.PKCS7Pad(original, AES_BLOCK_LENGTH)
 	//	fmt.Printf("block len:\t%v\n", len(block))
 
 	err = aes_enc_block(block, iv, key)
@@ -83,5 +83,5 @@ func pb_aes_dec(encrypted []byte, password string, saltlen, keylen byte) (origin
 		return nil, err
 	}
 
-	return pad.Pkcs5Unpad(block)
+	return pad.PKCS7Unpad(block)
 }

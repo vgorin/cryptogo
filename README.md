@@ -22,10 +22,16 @@ Package cryptogo implements some useful cryptography-related functions:
 				verifies previously signed http request using a string password
 
 	3. Paddings
-		3.1. pad.Pkcs5Pad
-				adds PKCS #5 padding to an input byte array, returning new (padded) byte array
-		3.2. pad.Pkcs5Unpad
-				removes PKCS #5 padding from an input byte array, returning new (striped) byte array
+		3.1. pad.PKCS77Pad
+				adds PKCS #7 padding to an input byte array, returning new (padded) byte array
+		3.2. pad.PKCS7Unpad
+				removes PKCS #7 padding from an input byte array, returning new (striped) byte array;
+				checks if padding is correct
+		3.3. pad.X923Pad
+				adds ANSI X.923 padding to an input byte array, returning new (padded) byte array
+		3.4. pad.X923Unad
+				removes ANSI X.923 padding from an input byte array, returning new (striped) byte array;
+				checks if padding is correct
 
 	4. Random
 		4.1. rnd.RandomBytes

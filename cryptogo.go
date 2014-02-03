@@ -1,4 +1,4 @@
-// Copyright 2013 Vasiliy Gorin. All rights reserved.
+// Copyright 2013-2014 Vasiliy Gorin. All rights reserved.
 // Use of this source code is governed by a GNU-style
 // license that can be found in the LICENSE file.
 

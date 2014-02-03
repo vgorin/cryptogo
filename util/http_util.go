@@ -1,3 +1,7 @@
+// Copyright 2013-2014 Vasiliy Gorin. All rights reserved.
+// Use of this source code is governed by a GNU-style
+// license that can be found in the LICENSE file.
+
 package util
 
 import "net/http"
@@ -30,8 +34,10 @@ func NewSignaturePattern(IncludeHeaders, ExcludeHeaders []string) *SignaturePatt
 // it excludes headers from signature_pattern.exclude_headers
 func MarshalRequest(req *http.Request, pattern *SignaturePattern) []byte {
 	buffer := new(bytes.Buffer)
-	buffer.WriteString(req.RemoteAddr)
-	buffer.WriteString(req.RequestURI)
+	buffer.WriteString(req.Host)
+	buffer.WriteString(req.URL.Path)
+	buffer.WriteString(req.URL.RawQuery)
+	buffer.WriteString(req.URL.Fragment)
 
 	header := req.Header
 
