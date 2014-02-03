@@ -1,35 +1,103 @@
-// Copyright 2013 Vasiliy Gorin. All rights reserved.
+// Copyright 2013-2014 Vasiliy Gorin. All rights reserved.
 // Use of this source code is governed by a GNU-style
 // license that can be found in the LICENSE file.
 
 /*
 Package pad implements some useful padding-related functions:
-	1. PKCS5 Padding
-		1.1. Pkcs5Pad
-				adds PKCS #5 padding to an input byte array, returning new (padded) byte array
-		1.2. Pkcs5Unpad
-				removes PKCS #5 padding from an input byte array, returning new (striped) byte array
+	1. PKCS7 Padding
+		1.1. PKCS77Pad
+				adds PKCS #7 padding to an input byte array, returning new (padded) byte array
+		1.2. PKCS7Unpad
+				removes PKCS #7 padding from an input byte array, returning new (striped) byte array;
+				checks if padding is correct
+
+	2. ANSI X.923 Padding
+		2.1. X923Pad
+				adds ANSI X.923 padding to an input byte array, returning new (padded) byte array
+		2.2. X923Unad
+				removes ANSI X.923 padding from an input byte array, returning new (striped) byte array;
+				checks if padding is correct
 */
 package pad
 
 import "bytes"
+import "errors"
+import "fmt"
 
-// Pkcs5Pad adds padding to the data block as described by RFC2898 (PKCS #5)
-func Pkcs5Pad(original []byte, keylen byte) (padded []byte) {
-	padlen := keylen - byte(len(original)%int(keylen))
-	if padlen == 0 {
-		padlen = keylen
-	}
+// PKCS7Pad adds PKCS7 padding to the data block, http://en.wikipedia.org/wiki/Padding_(cryptography)#PKCS7
+func PKCS7Pad(message []byte, blocksize byte) (padded []byte) {
+	// calculate padding length
+	padlen := padlen(message, blocksize)
 
-	padded = append(original, bytes.Repeat([]byte{padlen}, int(padlen))...)
+	// define PKCS7 padding block
+	padding := bytes.Repeat([]byte{padlen}, int(padlen))
+
+	// apply padding
+	padded = append(message, padding...)
 	return padded
 }
 
-// Pkcs5Pad removes padding from the data block as described by RFC2898 (PKCS #5)
-func Pkcs5Unpad(padded []byte) (original []byte, err error) {
-	// TODO: need to check all padding bytes (check padding itself)
+// PKCS7Unpad removes PKCS7 padding from the data block, http://en.wikipedia.org/wiki/Padding_(cryptography)#PKCS7
+// this function may return an error id padding is incorrect,
+// however it will return unpaded data in any case
+func PKCS7Unpad(padded []byte) (message []byte, err error) {
+	// read padding length
 	plen := len(padded)
-	padlen := int(padded[plen-1])
-	return padded[:plen-padlen], nil
+	last_byte := padded[plen-1]
+	padlen := int(last_byte)
+
+	// check validity of PKCS7 padding
+	for i := padlen; i > 1; i-- {
+		if padded[plen-i] != last_byte {
+			err = errors.New(fmt.Sprintf("Invalid padding (byte -%d: %d). Is the message supplied PKCS7 padded?", i, padded[plen-i]))
+			break
+		}
+	}
+
+	// remove padding
+	return padded[:plen-padlen], err
 }
 
+// X923Pad adds ANSI X.923 padding to the data block, http://en.wikipedia.org/wiki/Padding_(cryptography)#ANSI_X.923
+func X923Pad(message []byte, blocksize byte) (padded []byte) {
+	// calculate padding length
+	padlen := padlen(message, blocksize)
+
+	// define ANSI X.923 padding block
+	padding := make([]byte, padlen)
+	padding[padlen-1] = byte(padlen)
+
+	// apply padding
+	padded = append(message, padding...)
+	return padded
+}
+
+// X923Pad removes ANSI X.923 padding from the data block, http://en.wikipedia.org/wiki/Padding_(cryptography)#ANSI_X.923
+// this function may return an error id padding is incorrect,
+// however it will return unpaded data in any case
+func X923Unpad(padded []byte) (message []byte, err error) {
+	// read padding length
+	plen := len(padded)
+	last_byte := padded[plen-1]
+	padlen := int(last_byte)
+
+	// check validity of ANSI X.923 padding
+	for i := padlen; i > 1; i-- {
+		if padded[plen-i] != 0 {
+			err = errors.New(fmt.Sprintf("Invalid padding (byte -%d: %d). Is the message supplied ANSI X.923 padded?", i, padded[plen-i]))
+			break
+		}
+	}
+
+	// remove padding
+	return padded[:plen-padlen], err
+}
+
+// padlen calculates padding length
+func padlen(data []byte, blocksize byte) (padlen byte) {
+	padlen = blocksize - byte(len(data)%int(blocksize))
+	if padlen == 0 {
+		padlen = blocksize
+	}
+	return padlen
+}
