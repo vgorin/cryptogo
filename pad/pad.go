@@ -25,16 +25,25 @@ import "errors"
 import "fmt"
 
 // PKCS7Pad adds PKCS7 padding to the data block, http://en.wikipedia.org/wiki/Padding_(cryptography)#PKCS7
-func PKCS7Pad(message []byte, blocksize byte) (padded []byte) {
-	// calculate padding length
-	padlen := padlen(message, blocksize)
+func PKCS7Pad(message []byte, blocksize int) (padded []byte) {
+	// block size must be bigger or equal 2
+	if blocksize < 1<<1 {
+		panic("block size is too small (minimum is 2 bytes)")
+	}
+	// block size up to 255 requires 1 byte padding
+	if blocksize < 1<<8 {
+		// calculate padding length
+		padlen := padlen(message, blocksize)
 
-	// define PKCS7 padding block
-	padding := bytes.Repeat([]byte{padlen}, int(padlen))
+		// define PKCS7 padding block
+		padding := bytes.Repeat([]byte{byte(padlen)}, padlen)
 
-	// apply padding
-	padded = append(message, padding...)
-	return padded
+		// apply padding
+		padded = append(message, padding...)
+		return padded
+	}
+	// block size bigger or equal 256 is not currently supported
+	panic("unsupported block size")
 }
 
 // PKCS7Unpad removes PKCS7 padding from the data block, http://en.wikipedia.org/wiki/Padding_(cryptography)#PKCS7
@@ -59,17 +68,26 @@ func PKCS7Unpad(padded []byte) (message []byte, err error) {
 }
 
 // X923Pad adds ANSI X.923 padding to the data block, http://en.wikipedia.org/wiki/Padding_(cryptography)#ANSI_X.923
-func X923Pad(message []byte, blocksize byte) (padded []byte) {
-	// calculate padding length
-	padlen := padlen(message, blocksize)
+func X923Pad(message []byte, blocksize int) (padded []byte) {
+	// block size must be bigger or equal 2
+	if blocksize < 1<<1 {
+		panic("block size is too small (minimum is 2 bytes)")
+	}
+	// block size up to 255 requires 1 byte padding
+	if blocksize < 1<<8 {
+		// calculate padding length
+		padlen := padlen(message, blocksize)
 
-	// define ANSI X.923 padding block
-	padding := make([]byte, padlen)
-	padding[padlen-1] = byte(padlen)
+		// define ANSI X.923 padding block
+		padding := make([]byte, padlen)
+		padding[padlen-1] = byte(padlen)
 
-	// apply padding
-	padded = append(message, padding...)
-	return padded
+		// apply padding
+		padded = append(message, padding...)
+		return padded
+	}
+	// block size bigger or equal 256 is not currently supported
+	panic("unsupported block size")
 }
 
 // X923Pad removes ANSI X.923 padding from the data block, http://en.wikipedia.org/wiki/Padding_(cryptography)#ANSI_X.923
@@ -94,8 +112,8 @@ func X923Unpad(padded []byte) (message []byte, err error) {
 }
 
 // padlen calculates padding length
-func padlen(data []byte, blocksize byte) (padlen byte) {
-	padlen = blocksize - byte(len(data)%int(blocksize))
+func padlen(data []byte, blocksize int) (padlen int) {
+	padlen = blocksize - len(data)%blocksize
 	if padlen == 0 {
 		padlen = blocksize
 	}
