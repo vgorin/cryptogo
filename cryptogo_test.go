@@ -9,9 +9,10 @@ import "testing"
 import "net/http"
 
 import "github.com/vgorin/cryptogo/pb"
+import "github.com/vgorin/cryptogo/util"
 
 func TestSignRequest(t *testing.T) {
-	pattern := pb.NewSignaturePattern([]string{"header0, header1, header2, header3"}, nil)
+	pattern := util.NewSignaturePattern([]string{"header0, header1, header2, header3"}, nil)
 
 	request, _ := create_request()
 	pb.PBSignRequest(request, "password0", pattern)
