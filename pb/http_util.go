@@ -4,8 +4,11 @@
 
 package pb
 
+import "hash"
 import "crypto/hmac"
+import "crypto/sha1"
 import "crypto/sha256"
+import "crypto/sha512"
 import "encoding/hex"
 import "net/http"
 import "bytes"
@@ -26,16 +29,26 @@ const REQ_HEADER_HMAC = "X-Cryptogo-Hmac"
 //
 // Signature doesn't change if:
 // 	request header ordering is changed
+//
+// Executes on the DefaultPBE
 func PBSignRequest(req *http.Request, password string, pattern *util.SignaturePattern) error {
-	return pb_sign_request(req, password, pattern, PBKDF2_SALT_LENGTH, HMAC_KEY_LENGTH)
+	return DefaultPBE.PBSignRequest(req, password, pattern)
 }
 
-// PBVerifyRequest checks earlier signed http request signature using password specified to ensure request was not altered
-func PBVerifyRequest(req *http.Request, password string, pattern *util.SignaturePattern) bool {
-	return pb_validate_request(req, password, pattern, HMAC_KEY_LENGTH)
-}
+// PBSignRequest signs a http request using the password specified
+// Signature changes if:
+// 	remote address changes
+// 	request URI changes
+// 	request header is deleted
+// 	request header is added
+// 	request header is modified
+//
+// Signature doesn't change if:
+// 	request header ordering is changed
+func (p *pbe) PBSignRequest(req *http.Request, password string, pattern *util.SignaturePattern) error {
+	saltlen := p.pbkdf2_salt_length
+	keylen := p.hmac_key_length
 
-func pb_sign_request(req *http.Request, password string, pattern *util.SignaturePattern, saltlen, keylen byte) error {
 	salt, err := rnd.Salt(saltlen)
 	if err != nil {
 		return err
@@ -46,15 +59,24 @@ func pb_sign_request(req *http.Request, password string, pattern *util.Signature
 
 	key := PBKDF2Key(password, salt, keylen)
 	message := util.MarshalRequest(req, pattern)
-	hmac256 := hmac_sha256(message, key)
+	hmac_sha := hmac_sha(message, key)
 
-	signature_hex := hex.EncodeToString(hmac256)
+	signature_hex := hex.EncodeToString(hmac_sha)
 	req.Header.Set(REQ_HEADER_HMAC, signature_hex)
 
 	return nil
 }
 
-func pb_validate_request(req *http.Request, password string, pattern *util.SignaturePattern, keylen byte) bool {
+// PBVerifyRequest checks earlier signed http request signature using password specified to ensure request was not altered
+// Executes on the DefaultPBE
+func PBVerifyRequest(req *http.Request, password string, pattern *util.SignaturePattern) bool {
+	return DefaultPBE.PBVerifyRequest(req, password, pattern)
+}
+
+// PBVerifyRequest checks earlier signed http request signature using password specified to ensure request was not altered
+func (p *pbe) PBVerifyRequest(req *http.Request, password string, pattern *util.SignaturePattern) bool {
+	keylen := p.hmac_key_length
+
 	salt_hex := req.Header.Get(REQ_HEADER_SALT)
 	if salt_hex == "" {
 		return false
@@ -80,15 +102,28 @@ func pb_validate_request(req *http.Request, password string, pattern *util.Signa
 
 	key := PBKDF2Key(password, salt, keylen)
 	message := util.MarshalRequest(req, pattern)
-	hmac256 := hmac_sha256(message, key)
+	hmac_sha := hmac_sha(message, key)
 
-	return bytes.Compare(signature, hmac256) == 0
+	return bytes.Compare(signature, hmac_sha) == 0
 }
 
-func hmac_sha256(message, key []byte) []byte {
-	mac := hmac.New(sha256.New, key)
-	mac.Write(message)
+// hmac_sha calculates SHA-based HMAC using the key specified
+func hmac_sha(message, key []byte) []byte {
+	var mac hash.Hash
+	switch len(key) {
+	case 20:
+		mac = hmac.New(sha1.New, key)
+	case 28:
+		mac = hmac.New(sha256.New224, key)
+	case 32:
+		mac = hmac.New(sha256.New, key)
+	case 48:
+		mac = hmac.New(sha512.New384, key)
+	case 64:
+		mac = hmac.New(sha512.New, key)
+	default:
+		panic("unsupported key length " + string(len(key)))
+	}
 
-	return mac.Sum(nil)
+	return mac.Sum(message)
 }
-

@@ -33,7 +33,7 @@ func PKCS7Pad(message []byte, blocksize int) (padded []byte) {
 	// block size up to 255 requires 1 byte padding
 	if blocksize < 1<<8 {
 		// calculate padding length
-		padlen := padlen(message, blocksize)
+		padlen := PadLength(len(message), blocksize)
 
 		// define PKCS7 padding block
 		padding := bytes.Repeat([]byte{byte(padlen)}, padlen)
@@ -76,7 +76,7 @@ func X923Pad(message []byte, blocksize int) (padded []byte) {
 	// block size up to 255 requires 1 byte padding
 	if blocksize < 1<<8 {
 		// calculate padding length
-		padlen := padlen(message, blocksize)
+		padlen := PadLength(len(message), blocksize)
 
 		// define ANSI X.923 padding block
 		padding := make([]byte, padlen)
@@ -111,9 +111,9 @@ func X923Unpad(padded []byte) (message []byte, err error) {
 	return padded[:plen-padlen], err
 }
 
-// padlen calculates padding length
-func padlen(data []byte, blocksize int) (padlen int) {
-	padlen = blocksize - len(data)%blocksize
+// PadLength calculates padding length
+func PadLength(slice_length, blocksize int) (padlen int) {
+	padlen = blocksize - slice_length%blocksize
 	if padlen == 0 {
 		padlen = blocksize
 	}

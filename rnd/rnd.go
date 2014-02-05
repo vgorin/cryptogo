@@ -17,13 +17,9 @@ package rnd
 
 import "crypto/rand"
 
-var IV = random_bytes_byte
+var IV = RandomBytes
 
-var Salt = random_bytes_byte
-
-func random_bytes_byte(length byte) (rnd []byte, err error) {
-	return RandomBytes(int(length))
-}
+var Salt = RandomBytes
 
 // RandomBytes generates an array of length 'length' containing random bytes
 func RandomBytes(length int) (rnd []byte, err error) {

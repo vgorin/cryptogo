@@ -23,13 +23,54 @@ import "crypto/sha1"
 
 import "code.google.com/p/go.crypto/pbkdf2"
 
-const PBKDF2_ITERATIONS = 1 << 15 // 32k (approx.)
-const PBKDF2_SALT_LENGTH = 1 << 4 // 128 bit
-const AES_BLOCK_LENGTH = 1 << 4   // 128 bit
-const AES_KEY_LENGTH = 24         // 24 bytes (192-bit)
-const HMAC_KEY_LENGTH = 1 << 5    // 32 bytes (256-bit)
+// AES_BLOCK_LENGTH AES block length (128 bit)
+const AES_BLOCK_LENGTH = 1 << 4 // 128 bit
 
-func PBKDF2Key(password string, salt []byte, keylen byte) (key []byte) {
-	key = pbkdf2.Key([]byte(password), salt, PBKDF2_ITERATIONS, int(keylen), sha1.New)
+// PBKDF2Key generates a key from given password using PBKDF2 function
+// Executes on the DefaultPBE
+func PBKDF2Key(password string, salt []byte, keylen int) (key []byte) {
+	return DefaultPBE.PBKDF2Key(password, salt, keylen)
+}
+
+// PBKDF2Key generates a key from given password using PBKDF2 function
+func (p *pbe) PBKDF2Key(password string, salt []byte, keylen int) (key []byte) {
+	key = pbkdf2.Key([]byte(password), salt, p.pbkdf2_iterations, int(keylen), sha1.New)
 	return key
 }
+
+// pbe is structure for storing setting for password-based encryption/decryption
+type pbe struct {
+	pbkdf2_iterations,
+	pbkdf2_salt_length,
+	aes_key_length,
+	hmac_key_length int
+}
+
+// New creates new pbe structure with the settings specified
+func New(pbkdf2_iterations, pbkdf2_salt_length, aes_key_length, hmac_key_length int) *pbe {
+	if pbkdf2_iterations < 1 {
+		panic("pbkdf2_iterations < 1")
+	}
+	if pbkdf2_salt_length < 1 {
+		panic("pbkdf2_salt_length < 1")
+	}
+	if aes_key_length != 16 && aes_key_length != 24 && aes_key_length != 32 {
+		panic("aes_key_length must be one of: 16 (AES-128), 24 (AES-192), 32 (AES-256)")
+	}
+	if hmac_key_length != 20 && hmac_key_length != 28 && hmac_key_length != 32 && hmac_key_length != 48 && hmac_key_length != 64 {
+		panic("hmac_key_length must be one of: 20 (SHA1), 28 (SHA-224), 32 (SHA-256), 48 (SHA-384), 64 (SHA-512)")
+	}
+	return &pbe{
+		pbkdf2_iterations:  pbkdf2_iterations,
+		pbkdf2_salt_length: pbkdf2_salt_length,
+		aes_key_length:     aes_key_length,
+		hmac_key_length:    hmac_key_length,
+	}
+}
+
+// DefaultPBE
+// PBKDF2_ITERATIONS:	32k
+// PBKDF2_SALT_LENGTH:	128 bit
+// AES_KEY_LENGTH:		192 bit
+// HMAC_KEY_LENGTH:		256 bit
+var DefaultPBE *pbe = New(1<<15, 1<<4, 24, 1<<5)
