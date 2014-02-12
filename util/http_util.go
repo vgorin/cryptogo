@@ -58,12 +58,13 @@ func MarshalRequest(req *http.Request, pattern *SignaturePattern) []byte {
 	}
 	sort.Strings(keys)
 	for _, key := range keys {
-		values := header[key]
-		buffer.WriteString(key) // and write them to the buffer
-		//sort header values
-		sort.Strings(values)
-		for _, value := range values {
-			buffer.WriteString(value) // and write them to the buffer as well
+		if values, ok := header[key]; ok {
+			buffer.WriteString(key) // and write them to the buffer
+			//sort header values
+			sort.Strings(values)
+			for _, value := range values {
+				buffer.WriteString(value) // and write them to the buffer as well
+			}
 		}
 	}
 

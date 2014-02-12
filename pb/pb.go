@@ -68,9 +68,20 @@ func New(pbkdf2_iterations, pbkdf2_salt_length, aes_key_length, hmac_key_length 
 	}
 }
 
+// Defaults for DefaultPBE:
+// PBKDF2 ITERATIONS:	32k
+const DEFAULT_PBKDF2_ITERATIONS = 1 << 15
+// PBKDF2 SALT LENGTH:	128 bit
+const DEFAULT_PBKDF2_SALT_LENGTH = 1 << 4
+// KEY LENGTH (AES):	192 bit
+const DEFAULT_AES_KEY_LENGTH = 24
+// KEY LENGTH (HMAC):	256 bit
+const DEFAULT_HMAC_KEY_LENGTH = 1 << 5
+
 // DefaultPBE
-// PBKDF2_ITERATIONS:	32k
-// PBKDF2_SALT_LENGTH:	128 bit
-// AES_KEY_LENGTH:		192 bit
-// HMAC_KEY_LENGTH:		256 bit
-var DefaultPBE *pbe = New(1<<15, 1<<4, 24, 1<<5)
+var DefaultPBE *pbe = New(
+	DEFAULT_PBKDF2_ITERATIONS,
+	DEFAULT_PBKDF2_SALT_LENGTH,
+	DEFAULT_AES_KEY_LENGTH,
+	DEFAULT_HMAC_KEY_LENGTH,
+)
