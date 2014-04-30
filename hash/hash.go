@@ -62,6 +62,8 @@ import "crypto/sha1"
 import "crypto/sha256"
 import "crypto/sha512"
 
+import "code.google.com/p/go.crypto/bcrypt"
+
 // MD5Bytes calculates MD5 sum of the input array, returning result as a byte array
 func MD5Bytes(buf []byte) []byte {
 	s := md5.Sum(buf)
@@ -158,3 +160,61 @@ func SHA512Hex(buf []byte) string {
 	return hex.EncodeToString(SHA512Bytes(buf))
 }
 
+// BcryptHash returns the bcrypt hash of the password at the default cost.
+// Panics on error. Result is byte array. Based on bcrypt.GenerateFromPassword
+func BcryptHash(password []byte) []byte {
+	hash, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+	if err != nil {
+		panic(err)
+	}
+	return hash
+}
+
+// BcryptHashHex returns the bcrypt hash of the password at the default cost.
+// Panics on error. Result is hex-encoded string. Based on bcrypt.GenerateFromPassword
+func BcryptHashHex(password []byte) string {
+	return hex.EncodeToString(BcryptHash(password))
+}
+
+// BcryptHashBase64 returns the bcrypt hash of the password at the default cost.
+// Panics on error. Result is base64-encoded string. Based on bcrypt.GenerateFromPassword
+func BcryptHashBase64(password []byte) string {
+	return base64.StdEncoding.EncodeToString(BcryptHash(password))
+}
+
+// BcryptVerifyHash checks if supplied plain text password corresponds to its bcrypt hashed password.
+// Returns true if it corresponds, false on any error. Based on bcrypt.CompareHashAndPassword
+func BcryptVerifyHash(password, hash []byte) bool {
+	err := bcrypt.CompareHashAndPassword(hash, password)
+	return err == nil
+}
+
+// BcryptVerifyHashHex checks if supplied plain text password corresponds to its bcrypt hashed password.
+// Returns true if it corresponds, false on any error (including hex decoding errors).
+// Based on bcrypt.CompareHashAndPassword
+func BcryptVerifyHashHex(password_hex, hash_hex string) bool {
+	password, err := hex.DecodeString(password_hex)
+	if err != nil {
+		return false
+	}
+	hash, err := hex.DecodeString(hash_hex)
+	if err != nil {
+		return false
+	}
+	return BcryptVerifyHash(password, hash)
+}
+
+// BcryptVerifyHashBase64 checks if supplied plain text password corresponds to its bcrypt hashed password.
+// Returns true if it corresponds, false on any error (including base64 decoding errors).
+// Based on bcrypt.CompareHashAndPassword
+func BcryptVerifyHashBase64(password_base64, hash_base64 string) bool {
+	password, err := base64.StdEncoding.DecodeString(password_base64)
+	if err != nil {
+		return false
+	}
+	hash, err := base64.StdEncoding.DecodeString(hash_base64)
+	if err != nil {
+		return false
+	}
+	return BcryptVerifyHash(password, hash)
+}
