@@ -192,11 +192,7 @@ func BcryptVerifyHash(password, hash []byte) bool {
 // BcryptVerifyHashHex checks if supplied plain text password corresponds to its bcrypt hashed password.
 // Returns true if it corresponds, false on any error (including hex decoding errors).
 // Based on bcrypt.CompareHashAndPassword
-func BcryptVerifyHashHex(password_hex, hash_hex string) bool {
-	password, err := hex.DecodeString(password_hex)
-	if err != nil {
-		return false
-	}
+func BcryptVerifyHashHex(password []byte, hash_hex string) bool {
 	hash, err := hex.DecodeString(hash_hex)
 	if err != nil {
 		return false
@@ -207,11 +203,7 @@ func BcryptVerifyHashHex(password_hex, hash_hex string) bool {
 // BcryptVerifyHashBase64 checks if supplied plain text password corresponds to its bcrypt hashed password.
 // Returns true if it corresponds, false on any error (including base64 decoding errors).
 // Based on bcrypt.CompareHashAndPassword
-func BcryptVerifyHashBase64(password_base64, hash_base64 string) bool {
-	password, err := base64.StdEncoding.DecodeString(password_base64)
-	if err != nil {
-		return false
-	}
+func BcryptVerifyHashBase64(password []byte, hash_base64 string) bool {
 	hash, err := base64.StdEncoding.DecodeString(hash_base64)
 	if err != nil {
 		return false
