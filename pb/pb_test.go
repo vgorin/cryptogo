@@ -75,29 +75,34 @@ func BenchmarkPBAes(b *testing.B) {
 }
 
 func BenchmarkPBAesEncryptPtr(b *testing.B) {
-	bench_aes_enc_dec_ptr(b, PBAesEncryptPtr)
+	bench_aes_enc_dec_ptr(b, nil, PBAesEncryptPtr)
 }
 
 func BenchmarkPBAesDecryptPtr(b *testing.B) {
-	bench_aes_enc_dec_ptr(b, PBAesDecryptPtr)
+	buffer := bench_aes_enc_dec_ptr(b, nil, PBAesEncryptPtr)
+	b.ResetTimer()
+	bench_aes_enc_dec_ptr(b, buffer, PBAesDecryptPtr)
 }
 
-func bench_aes_enc_dec_ptr(b *testing.B, enc_dec_ptr func(buf_ptr *[]byte, password string) error) {
-	block_size := 1 << 15
+func bench_aes_enc_dec_ptr(b *testing.B, buffer_in []byte, enc_dec_ptr func(buf_ptr *[]byte, password string) error) (buffer_out []byte) {
+	block_size := 1 << 21
 	cycles := 1
 	if b.N > block_size {
 		cycles = b.N / block_size
 	} else {
 		block_size = b.N
 	}
-	// using empty buffer, its ok as it will be encrypted many times
-	buffer := make([]byte, block_size)
+	if buffer_in == nil {
+		// using empty buffer, its ok as it will be encrypted many times
+		buffer_in = make([]byte, block_size)
+	}
 	// using high entropy password
 	password := `z;*jYt4A]_E1§>\Sx`
 	for i := 0; i < cycles; i++ {
-		err := enc_dec_ptr(&buffer, password)
+		err := enc_dec_ptr(&buffer_in, password)
 		if err != nil {
 			b.Fatal(err)
 		}
 	}
+	return buffer_in
 }
