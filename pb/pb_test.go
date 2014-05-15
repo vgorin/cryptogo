@@ -69,7 +69,35 @@ func BenchmarkPBAes(b *testing.B) {
 		}
 		decrypted, err := PBAesDecrypt(encrypted, password)
 		if bytes.Compare(buffer, decrypted) != 0 {
-			b.Error("original and decryoted messages mismatch")
+			b.Error("original and decrypted messages mismatch")
+		}
+	}
+}
+
+func BenchmarkPBAesEncryptPtr(b *testing.B) {
+	bench_aes_enc_dec_ptr(b, PBAesEncryptPtr)
+}
+
+func BenchmarkPBAesDecryptPtr(b *testing.B) {
+	bench_aes_enc_dec_ptr(b, PBAesDecryptPtr)
+}
+
+func bench_aes_enc_dec_ptr(b *testing.B, enc_dec_ptr func(buf_ptr *[]byte, password string) error) {
+	block_size := 1 << 15
+	cycles := 1
+	if b.N > block_size {
+		cycles = b.N / block_size
+	} else {
+		block_size = b.N
+	}
+	// using empty buffer, its ok as it will be encrypted many times
+	buffer := make([]byte, block_size)
+	// using high entropy password
+	password := `z;*jYt4A]_E1§>\Sx`
+	for i := 0; i < cycles; i++ {
+		err := enc_dec_ptr(&buffer, password)
+		if err != nil {
+			b.Fatal(err)
 		}
 	}
 }
