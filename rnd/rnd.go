@@ -11,7 +11,6 @@ Package rnd implements random-related functions:
 	3. Salt
 			synonim for RandomBytes, used to generate random Salt
 
-
 */
 package rnd
 

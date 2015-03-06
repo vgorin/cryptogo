@@ -85,7 +85,7 @@ func BenchmarkPBAesDecryptPtr(b *testing.B) {
 }
 
 func bench_aes_enc_dec_ptr(b *testing.B, buffer_in []byte, enc_dec_ptr func(buf_ptr *[]byte, password string) error) (buffer_out []byte) {
-	block_size := 1 << 21
+	block_size := 1 << 22
 	cycles := 1
 	if b.N > block_size {
 		cycles = b.N / block_size

@@ -17,11 +17,11 @@ Package pad implements some useful padding-related functions:
 		2.2. X923Unad
 				removes ANSI X.923 padding from an input byte array, returning new (striped) byte array;
 				checks if padding is correct
+
 */
 package pad
 
 import "bytes"
-import "errors"
 import "fmt"
 
 // PKCS7Pad adds PKCS7 padding to the data block, http://en.wikipedia.org/wiki/Padding_(cryptography)#PKCS7
@@ -58,7 +58,7 @@ func PKCS7Unpad(padded []byte) (message []byte, err error) {
 	// check validity of PKCS7 padding
 	for i := padlen; i > 1; i-- {
 		if padded[plen-i] != last_byte {
-			err = errors.New(fmt.Sprintf("Invalid padding (byte -%d: %d). Is the message supplied PKCS7 padded?", i, padded[plen-i]))
+			err = fmt.Errorf("Invalid padding (byte -%d: %d). Is the message supplied PKCS7 padded?", i, padded[plen-i])
 			break
 		}
 	}
@@ -102,7 +102,7 @@ func X923Unpad(padded []byte) (message []byte, err error) {
 	// check validity of ANSI X.923 padding
 	for i := padlen; i > 1; i-- {
 		if padded[plen-i] != 0 {
-			err = errors.New(fmt.Sprintf("Invalid padding (byte -%d: %d). Is the message supplied ANSI X.923 padded?", i, padded[plen-i]))
+			err = fmt.Errorf("Invalid padding (byte -%d: %d). Is the message supplied ANSI X.923 padded?", i, padded[plen-i])
 			break
 		}
 	}

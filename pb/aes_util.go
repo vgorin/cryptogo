@@ -41,7 +41,7 @@ func PBAesEncrypt(original []byte, password string) (encrypted []byte, err error
 	return DefaultPBE.PBAesEncrypt(original, password)
 }
 
-// PBAesEncryp: AES-based password-based encryption
+// PBAesEncrypt: AES-based password-based encryption
 func (p *pbe) PBAesEncrypt(original []byte, password string) (encrypted []byte, err error) {
 	encrypted = p.AllocateSlice(len(original))
 	copy(encrypted, original)
