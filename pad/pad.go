@@ -48,7 +48,7 @@ func PKCS7Pad(message []byte, blocksize int) (padded []byte) {
 
 // PKCS7Unpad removes PKCS7 padding from the data block, http://en.wikipedia.org/wiki/Padding_(cryptography)#PKCS7
 // this function may return an error id padding is incorrect,
-// however it will return unpaded data in any case
+// however it will return unpadded data in any case
 func PKCS7Unpad(padded []byte) (message []byte, err error) {
 	// read padding length
 	plen := len(padded)
@@ -92,7 +92,7 @@ func X923Pad(message []byte, blocksize int) (padded []byte) {
 
 // X923Pad removes ANSI X.923 padding from the data block, http://en.wikipedia.org/wiki/Padding_(cryptography)#ANSI_X.923
 // this function may return an error id padding is incorrect,
-// however it will return unpaded data in any case
+// however it will return unpadded data in any case
 func X923Unpad(padded []byte) (message []byte, err error) {
 	// read padding length
 	plen := len(padded)

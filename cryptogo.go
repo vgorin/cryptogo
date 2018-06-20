@@ -6,11 +6,11 @@
 Package cryptogo implements some useful cryptography-related functions:
 	1. Hashes:
 		1.1. hash.MD5Bytes
-				calculates an MD5 chechsum of the input byte array as a byte array
+				calculates an MD5 checksum of the input byte array as a byte array
 		1.2. hash.MD5Base64
-				calculates an MD5 chechsum of the input byte array as a base64-encoded string
+				calculates an MD5 checksum of the input byte array as a base64-encoded string
 		1.3. hash.MD5Hex
-				calculates an MD5 chechsum of the input byte array as a hex-encoded string
+				calculates an MD5 checksum of the input byte array as a hex-encoded string
 
 	2. Password-based (PB):
 		2.1. pb.PBAesEncrypt
@@ -32,9 +32,9 @@ Package cryptogo implements some useful cryptography-related functions:
 		4.1. rnd.RandomBytes
 				generates a random byte array of the specified length
 		4.2. IV
-			synonim for RandomBytes, used to generate random IV
+			synonym for RandomBytes, used to generate random IV
 		4.3. Salt
-			synonim for RandomBytes, used to generate random Salt
+			synonym for RandomBytes, used to generate random Salt
 
 */
 

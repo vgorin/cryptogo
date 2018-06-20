@@ -6,51 +6,51 @@
 Package hash implements some useful hash-related functions:
 	1. MD5:
 		1.1. MD5Bytes
-				calculates an MD5 chechsum of the input byte array as a byte array
+				calculates an MD5 checksum of the input byte array as a byte array
 		1.2. MD5Base64
-				calculates an MD5 chechsum of the input byte array as a base64-encoded string
+				calculates an MD5 checksum of the input byte array as a base64-encoded string
 		1.3. MD5Hex
-				calculates an MD5 chechsum of the input byte array as a hex-encoded string
+				calculates an MD5 checksum of the input byte array as a hex-encoded string
 
 	2. SHA1:
 		2.1. SHA1Bytes
-				calculates an SHA1 chechsum of the input byte array as a byte array
+				calculates an SHA1 checksum of the input byte array as a byte array
 		2.2. SHA1Base64
-				calculates an SHA1 chechsum of the input byte array as a base64-encoded string
+				calculates an SHA1 checksum of the input byte array as a base64-encoded string
 		2.3. SHA1Hex
-				calculates an SHA1 chechsum of the input byte array as a hex-encoded string
+				calculates an SHA1 checksum of the input byte array as a hex-encoded string
 
 	3. SHA-224:
 		3.1. SHA224Bytes
-				calculates an SHA-224 chechsum of the input byte array as a byte array
+				calculates an SHA-224 checksum of the input byte array as a byte array
 		3.2. SHA224Base64
-				calculates an SHA-224 chechsum of the input byte array as a base64-encoded string
+				calculates an SHA-224 checksum of the input byte array as a base64-encoded string
 		3.3. SHA224Hex
-				calculates an SHA-224 chechsum of the input byte array as a hex-encoded string
+				calculates an SHA-224 checksum of the input byte array as a hex-encoded string
 
 	4. SHA-256:
 		4.1. SHA256Bytes
-				calculates an SHA-256 chechsum of the input byte array as a byte array
+				calculates an SHA-256 checksum of the input byte array as a byte array
 		4.2. SHA256Base64
-				calculates an SHA-256 chechsum of the input byte array as a base64-encoded string
+				calculates an SHA-256 checksum of the input byte array as a base64-encoded string
 		4.3. SHA256Hex
-				calculates an SHA-256 chechsum of the input byte array as a hex-encoded string
+				calculates an SHA-256 checksum of the input byte array as a hex-encoded string
 
 	5. SHA-384:
 		5.1. SHA384Bytes
-				calculates an SHA-384 chechsum of the input byte array as a byte array
+				calculates an SHA-384 checksum of the input byte array as a byte array
 		5.2. SHA384Base64
-				calculates an SHA-384 chechsum of the input byte array as a base64-encoded string
+				calculates an SHA-384 checksum of the input byte array as a base64-encoded string
 		5.3. SHA384Hex
-				calculates an SHA-384 chechsum of the input byte array as a hex-encoded string
+				calculates an SHA-384 checksum of the input byte array as a hex-encoded string
 
 	6. SHA-512:
 		6.1. SHA512Bytes
-				calculates an SHA-512 chechsum of the input byte array as a byte array
+				calculates an SHA-512 checksum of the input byte array as a byte array
 		6.2. SHA512Base64
-				calculates an SHA-512 chechsum of the input byte array as a base64-encoded string
+				calculates an SHA-512 checksum of the input byte array as a base64-encoded string
 		6.3. SHA512Hex
-				calculates an SHA-512 chechsum of the input byte array as a hex-encoded string
+				calculates an SHA-512 checksum of the input byte array as a hex-encoded string
 
 */
 package hash

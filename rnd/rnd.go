@@ -7,9 +7,9 @@ Package rnd implements random-related functions:
 	1. RandomBytes
 			generates a random byte array of the specified length
 	2. IV
-			synonim for RandomBytes, used to generate random IV
+			synonym for RandomBytes, used to generate random IV
 	3. Salt
-			synonim for RandomBytes, used to generate random Salt
+			synonym for RandomBytes, used to generate random Salt
 
 */
 package rnd

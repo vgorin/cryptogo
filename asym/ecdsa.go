@@ -3,12 +3,12 @@
 // license that can be found in the LICENSE file.
 
 /*
-Package asym implements asymetric cryptography related functions:
+Package asym implements asymmetric cryptography related functions:
 	1. GenerateKeyPair
 			generates private/public key pair, result is returned as two strings
 
 	2. Sign
-			signes a byte array (usually hash) using private key specified
+			signs a byte array (usually hash) using private key specified
 
 	3. Verify
 			verifies a byte array signature using public key specified
